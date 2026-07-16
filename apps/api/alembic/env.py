@@ -9,6 +9,8 @@ from alembic import context
 
 from app.core.settings import settings
 from app.adapters.db.base import Base
+from app.domain.auth import models
+
 
 config = context.config
 

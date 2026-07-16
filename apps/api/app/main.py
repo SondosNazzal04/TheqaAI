@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.core.settings import settings
 from app.core.middleware import setup_middlewares
 from app.core.errors import setup_exception_handlers
+from app.api.v1.routes import auth
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -10,6 +11,9 @@ app = FastAPI(
 
 setup_middlewares(app)
 setup_exception_handlers(app)
+
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}", tags=["user"]) # for /me endpoint
 
 @app.get("/health", tags=["system"])
 async def health_check():
