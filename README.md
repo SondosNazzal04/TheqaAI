@@ -127,3 +127,34 @@ Open your browser and navigate to: [http://127.0.0.1:8000/docs](http://127.0.0.1
 5. Click **Execute**. 
 
 **Expected Result**: You should instantly receive a `200` response containing a computed `score` and a detailed JSON `breakdown`. Because you only verified their identity, the rest of their score components will automatically fall back to the cold-start baseline priors outlined in the Technical Blueprint (e.g., age=20, disputes=100)!
+
+### Step 4: Test Creating and Accepting a Deal (Phase 4)
+Make sure you are authenticated in Swagger UI (using the green Authorize button at the top) by creating a user (`POST /v1/auth/register`) and an organization (`POST /v1/auth/organizations`), then grabbing the Bearer token.
+
+**1. Create a Deal (Seller Role)**
+- Locate `POST /v1/deals` and execute it.
+- **Payload:**
+```json
+{
+  "org_id": "<your-organization-uuid>",
+  "title": "Graphic Design Services",
+  "description": "Logo design for the new startup",
+  "amount": 500,
+  "currency": "JOD",
+  "fulfillment_mode": "standard",
+  "fee_bps": 200,
+  "fee_payer": "split"
+}
+```
+- **Expected Output:** A `201` response with the Deal object. It will have a status of `draft`, and it will automatically generate a unique `public_code` (e.g., `ABC123XYZ`). Notice that `fee_amount` and `net_amount` are automatically computed, and you have been added as the `seller` participant.
+
+**2. Fetch Deal via Public Code (Buyer Checking Out)**
+- Locate `GET /v1/deals/by-code/{code}`. This endpoint does NOT require authentication.
+- Provide the `public_code` generated in step 1.
+- **Expected Output:** A `200` response showing the deal details. This is what powers the public checkout link before a buyer logs in.
+
+**3. Accept the Deal (Buyer Role)**
+- Authenticate as a completely **different user** in Swagger UI (using a new incognito window, or changing the Bearer token).
+- Locate `POST /v1/deals/{id}/accept`.
+- Provide the `id` of the deal.
+- **Expected Output:** A `200` response. The State Machine automatically transitions the deal from `draft` to `awaiting_funding`. The new user is automatically attached as the `buyer_user_id` and added to the `participants` array. Furthermore, an immutable transition log is appended to the `events` array demonstrating the state change!

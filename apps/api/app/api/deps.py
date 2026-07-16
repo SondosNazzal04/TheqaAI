@@ -30,7 +30,8 @@ async def get_current_user(
     except jwt.InvalidTokenError:
         raise credentials_exception
 
-    stmt = select(User).options(joinedload(User.memberships).joinedload(User.memberships.class_.org)).where(User.id == user_id)
+    from app.domain.auth.models import OrganizationMember
+    stmt = select(User).options(joinedload(User.memberships).joinedload(OrganizationMember.org)).where(User.id == user_id)
     result = await db.execute(stmt)
     user = result.unique().scalar_one_or_none()
     
