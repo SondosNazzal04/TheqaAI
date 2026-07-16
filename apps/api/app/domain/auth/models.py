@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 # pyrefly: ignore [missing-import]
 from sqlalchemy import Column, String, text, CheckConstraint, ForeignKey, UniqueConstraint, DateTime, CHAR
 # pyrefly: ignore [missing-import]
-from sqlalchemy.dialects.postgresql import UUID, CITEXT
+from sqlalchemy.dialects.postgresql import UUID, CITEXT, JSONB
 # pyrefly: ignore [missing-import]
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from typing import Optional, List
@@ -109,3 +109,16 @@ class KycProfile(Base):
     )
 
     user: Mapped["User"] = relationship("User", back_populates="kyc_profile")
+
+class ApiClient(Base):
+    __tablename__ = "api_clients"
+
+    id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=generate_uuid7)
+    org_id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+    key_id: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    key_hash: Mapped[str] = mapped_column(String, nullable=False)
+    scopes: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]")
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    org: Mapped["Organization"] = relationship("Organization")

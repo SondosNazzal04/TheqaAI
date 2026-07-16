@@ -81,4 +81,14 @@ class DealStateMachine:
         )
         db.add(event)
         
+        # 3. Create OutboxEvent if the deal reached a milestone state
+        if to_state in [DealState.FUNDED.value, DealState.RELEASED.value]:
+            from app.domain.deal.models import OutboxEvent
+            outbox_event = OutboxEvent(
+                deal_id=deal.id,
+                event_type=f"deal.{to_state}",
+                payload={"deal_id": str(deal.id), "status": to_state, "public_code": deal.public_code}
+            )
+            db.add(outbox_event)
+        
         return deal

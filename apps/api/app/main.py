@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from app.core.settings import settings
 from app.core.middleware import setup_middlewares
 from app.core.errors import setup_exception_handlers
-from app.api.v1.routes import auth, trust, deals, webhooks
+from app.api.v1.routes import auth, trust, deals, webhooks, admin
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -17,6 +17,7 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}", tags=["user"]) 
 app.include_router(trust.router, prefix=f"{settings.API_V1_STR}/trust", tags=["trust"])
 app.include_router(deals.router, prefix=f"{settings.API_V1_STR}/deals", tags=["deals"])
 app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks", tags=["webhooks"])
+app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["admin"])
 
 @app.get("/health", tags=["system"])
 async def health_check():

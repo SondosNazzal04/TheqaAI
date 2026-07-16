@@ -22,7 +22,7 @@ class Deal(Base):
     id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=generate_uuid7)
     public_code: Mapped[str] = mapped_column(String, unique=True, index=True, default=generate_public_code)
     org_id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"))
-    seller_user_id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    seller_user_id: Mapped[Optional[uuid6.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     buyer_user_id: Mapped[Optional[uuid6.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     
     title: Mapped[str] = mapped_column(String, nullable=False)
@@ -99,3 +99,16 @@ class DealEvent(Base):
     )
 
     deal: Mapped["Deal"] = relationship("Deal", back_populates="events")
+
+class OutboxEvent(Base):
+    __tablename__ = "outbox_events"
+
+    id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=generate_uuid7)
+    deal_id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("deals.id"))
+    event_type: Mapped[str] = mapped_column(String, nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    status: Mapped[str] = mapped_column(String, default="pending", server_default="pending")
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("TIMEZONE('utc', CURRENT_TIMESTAMP)")
+    )

@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Theqa API"
     API_V1_STR: str = "/v1"
+    FRONTEND_URL: str = "http://localhost:3000"
     
     # Postgres Database
     POSTGRES_USER: str = "postgres"

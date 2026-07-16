@@ -13,6 +13,7 @@ from app.domain.auth.models import User, Organization, OrganizationMember, UserS
 from app.domain.trust.models import TrustScore, TrustSignal
 from app.domain.deal.models import Deal, DealParticipant, DealEvent
 from app.domain.payment.models import PaymentIntent, EscrowHold, LedgerTransaction, LedgerEntry
+from app.domain.fulfillment.models import Shipment, FulfillmentConfirmation
 
 
 config = context.config

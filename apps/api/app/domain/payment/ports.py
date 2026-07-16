@@ -8,3 +8,19 @@ class ProviderEscrowPort(ABC):
         Returns the provider's intent ID.
         """
         pass
+
+    @abstractmethod
+    async def release_funds(self, intent_id: str, seller_net_minor: int, fee_minor: int) -> str:
+        """
+        Instructs the licensed provider to release funds from escrow.
+        Returns the release transaction ID.
+        """
+        pass
+        
+    @abstractmethod
+    async def refund_funds(self, intent_id: str, amount_minor: int) -> str:
+        """
+        Instructs the licensed provider to refund funds to the buyer.
+        Returns the refund transaction ID.
+        """
+        pass

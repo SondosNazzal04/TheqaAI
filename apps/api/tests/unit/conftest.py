@@ -30,7 +30,7 @@ async def db():
     async with TestingSessionLocal() as session:
         yield session
 
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_db, get_current_user, get_current_user_or_partner
 
 @pytest_asyncio.fixture(scope="function")
 async def db_data(db: AsyncSession):
@@ -56,6 +56,7 @@ async def client(db: AsyncSession, db_data):
     
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_current_user_or_partner] = override_get_current_user
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac

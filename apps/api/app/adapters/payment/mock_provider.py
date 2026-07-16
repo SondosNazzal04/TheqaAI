@@ -21,17 +21,28 @@ class MockLicensedEscrowProvider(ProviderEscrowPort):
         # DEMO SPEED OPTIMIZATION: 
         # Schedule a background task to immediately fire the webhook 
         # simulating a successful payment, allowing instant state changes.
-        asyncio.create_task(self._fire_webhook(intent_id))
+        asyncio.create_task(self._fire_webhook(intent_id, "payment.succeeded"))
         
         return intent_id
 
-    async def _fire_webhook(self, intent_id: str):
+    async def release_funds(self, intent_id: str, seller_net_minor: int, fee_minor: int) -> str:
+        txn_id = f"mock_rel_{uuid.uuid4().hex[:12]}"
+        asyncio.create_task(self._fire_webhook(intent_id, "release.succeeded"))
+        return txn_id
+        
+    async def refund_funds(self, intent_id: str, amount_minor: int) -> str:
+        txn_id = f"mock_ref_{uuid.uuid4().hex[:12]}"
+        asyncio.create_task(self._fire_webhook(intent_id, "refund.succeeded"))
+        return txn_id
+
+    async def _fire_webhook(self, intent_id: str, event_type: str):
         # Small delay to ensure the caller has time to commit the intent to the DB
         await asyncio.sleep(0.5)
         
         payload = {
             "intent_id": intent_id,
-            "status": "succeeded"
+            "status": "succeeded",
+            "event_type": event_type
         }
         payload_bytes = json.dumps(payload).encode('utf-8')
         

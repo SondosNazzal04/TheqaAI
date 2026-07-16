@@ -37,7 +37,7 @@ class DealResponse(BaseModel):
     id: uuid.UUID
     public_code: str
     org_id: uuid.UUID
-    seller_user_id: uuid.UUID
+    seller_user_id: Optional[uuid.UUID] = None
     buyer_user_id: Optional[uuid.UUID] = None
     title: str
     description: Optional[str] = None
@@ -53,7 +53,8 @@ class DealResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     
-    events: Optional[List[DealEventResponse]] = None
-    participants: Optional[List[DealParticipantResponse]] = None
+    events: List[DealEventResponse] = []
+    participants: List[DealParticipantResponse] = []
+    checkout_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
