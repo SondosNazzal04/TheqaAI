@@ -206,3 +206,46 @@ async def cancel_deal(
         return deal_eager
     except StateTransitionError as e:
         raise HTTPException(status_code=409, detail=str(e))
+
+from fastapi import Header
+from app.application.payment_service import PaymentService
+
+@router.post("/{id}/payment-intents")
+async def create_deal_payment_intent(
+    id: uuid.UUID = Path(...),
+    idempotency_key: str = Header(..., alias="Idempotency-Key"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a payment intent for a deal. Requires an Idempotency-Key header."""
+    result = await db.execute(
+        select(Deal)
+        .where(Deal.id == id)
+    )
+    deal = result.scalar_one_or_none()
+    if not deal:
+        raise HTTPException(status_code=404, detail="Deal not found")
+        
+    if deal.buyer_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only the buyer can create a payment intent")
+        
+    if deal.status != DealState.AWAITING_FUNDING.value:
+        raise HTTPException(status_code=409, detail=f"Cannot create payment intent in state {deal.status}")
+        
+    amount_minor = int(deal.amount * 100) # Assuming amount is full JOD (e.g., 500 = 50000 minor)
+    
+    intent = await PaymentService.create_intent(
+        db=db,
+        deal=deal,
+        amount_minor=amount_minor,
+        currency=deal.currency,
+        idempotency_key=idempotency_key
+    )
+    
+    return {
+        "intent_id": str(intent.id),
+        "provider_intent_id": intent.provider_intent_id,
+        "status": intent.status,
+        "amount_minor": amount_minor,
+        "currency": intent.currency
+    }

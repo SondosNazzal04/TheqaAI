@@ -158,3 +158,19 @@ Make sure you are authenticated in Swagger UI (using the green Authorize button 
 - Locate `POST /v1/deals/{id}/accept`.
 - Provide the `id` of the deal.
 - **Expected Output:** A `200` response. The State Machine automatically transitions the deal from `draft` to `awaiting_funding`. The new user is automatically attached as the `buyer_user_id` and added to the `participants` array. Furthermore, an immutable transition log is appended to the `events` array demonstrating the state change!
+
+### Step 5: Test the Mock Licensed Provider (Phase 5)
+Once the deal is in `awaiting_funding` and you are authenticated as the **buyer**, you can trigger the secure checkout.
+
+**1. Create a Payment Intent**
+- Locate `POST /v1/deals/{id}/payment-intents`.
+- Paste the Deal `id` from step 4.
+- In the `Idempotency-Key` header field, enter any random string (e.g. `test-key-123`).
+- **Expected Output:** A `200` response containing a `provider_intent_id` (e.g., `mock_pi_xxxx`). 
+- **What happens behind the scenes?** Because of our "Demo Speed Optimization", our Mock Licensed Provider securely simulates a successful bank transaction and *automatically* fires a background HTTP request to our internal webhook (`POST /v1/webhooks/mock-provider`) with an HMAC SHA-256 signature!
+
+**2. Verify the Shadow Ledger and State Transition**
+- Wait 1 second for the background webhook to process.
+- Locate `GET /v1/deals/{id}`.
+- Enter the Deal `id` and hit Execute.
+- **Expected Output:** The deal's `status` has instantly transitioned to `"funded"`! If you check the `events` array, you will see a secure audit log showing the exact timestamp the State Machine moved the deal to funded. In the database, a double-entry `LedgerTransaction` has been safely appended to the shadow ledger, moving funds to the `provider_escrow_mirror`!
