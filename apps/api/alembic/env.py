@@ -9,8 +9,9 @@ from alembic import context
 
 from app.core.settings import settings
 from app.adapters.db.base import Base
-from app.domain.auth import models
-from app.domain.trust import models as trust_models
+from app.domain.auth.models import User, Organization, OrganizationMember, UserSession, KycProfile
+from app.domain.trust.models import TrustScore, TrustSignal
+from app.domain.deal.models import Deal, DealParticipant, DealEvent
 
 
 config = context.config
